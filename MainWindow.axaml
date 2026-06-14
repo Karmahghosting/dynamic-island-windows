@@ -116,7 +116,7 @@
                                HorizontalAlignment="Center" VerticalAlignment="Center" />
                     <StackPanel Name="CompactBars" Grid.Column="2" Orientation="Horizontal"
                                 VerticalAlignment="Center" Margin="8,0,0,0" Height="16">
-                        <Rectangle Width="3" Height="8" Fill="{StaticResource AccentBrush}" RadiusX="1.5" RadiusY="1.5" Margin="1,0" VerticalAlignment="Center">
+                        <Rectangle Width="3" Height="8" Fill="{DynamicResource AccentBrush}" RadiusX="1.5" RadiusY="1.5" Margin="1,0" VerticalAlignment="Center">
                             <Rectangle.Styles>
                                 <Style Selector="Rectangle">
                                     <Style.Animations>
@@ -128,7 +128,7 @@
                                 </Style>
                             </Rectangle.Styles>
                         </Rectangle>
-                        <Rectangle Width="3" Height="14" Fill="{StaticResource AccentBrush}" RadiusX="1.5" RadiusY="1.5" Margin="1,0" VerticalAlignment="Center">
+                        <Rectangle Width="3" Height="14" Fill="{DynamicResource AccentBrush}" RadiusX="1.5" RadiusY="1.5" Margin="1,0" VerticalAlignment="Center">
                             <Rectangle.Styles>
                                 <Style Selector="Rectangle">
                                     <Style.Animations>
@@ -140,7 +140,7 @@
                                 </Style>
                             </Rectangle.Styles>
                         </Rectangle>
-                        <Rectangle Width="3" Height="6" Fill="{StaticResource AccentBrush}" RadiusX="1.5" RadiusY="1.5" Margin="1,0" VerticalAlignment="Center">
+                        <Rectangle Width="3" Height="6" Fill="{DynamicResource AccentBrush}" RadiusX="1.5" RadiusY="1.5" Margin="1,0" VerticalAlignment="Center">
                             <Rectangle.Styles>
                                 <Style Selector="Rectangle">
                                     <Style.Animations>
@@ -169,6 +169,7 @@
                             <Button Name="TabMediaBtn" Classes="tab" Content="Média" Click="TabMedia_Click" />
                             <Button Name="TabTimerBtn" Classes="tab" Content="Minuteur" Click="TabTimer_Click" />
                             <Button Name="TabFilesBtn" Classes="tab" Content="Fichiers" Click="TabFiles_Click" />
+                            <Button Name="TabSysBtn" Classes="tab" Content="Système" Click="TabSystem_Click" />
                         </StackPanel>
                         <Button Grid.Column="1" Classes="icon" Content="•••" Click="Settings_Click" VerticalAlignment="Top" />
                     </Grid>
@@ -233,6 +234,30 @@
                                 <WrapPanel Name="ShelfPanel" />
                             </ScrollViewer>
                         </Panel>
+
+                        <StackPanel Name="SystemPanel" IsVisible="False" VerticalAlignment="Center" Spacing="12" Margin="0,4">
+                            <StackPanel Spacing="5">
+                                <Grid ColumnDefinitions="*,Auto">
+                                    <TextBlock Text="Processeur" Foreground="{StaticResource TextBrush}" FontSize="12" />
+                                    <TextBlock Name="CpuText" Grid.Column="1" Text="0 %" Foreground="{StaticResource SubTextBrush}" FontSize="12" />
+                                </Grid>
+                                <Panel Height="6">
+                                    <Border CornerRadius="3" Background="{StaticResource TrackBrush}" />
+                                    <Border Name="CpuFill" CornerRadius="3" Background="{DynamicResource AccentBrush}" HorizontalAlignment="Left" Width="0" />
+                                </Panel>
+                            </StackPanel>
+                            <StackPanel Spacing="5">
+                                <Grid ColumnDefinitions="*,Auto">
+                                    <TextBlock Text="Mémoire" Foreground="{StaticResource TextBrush}" FontSize="12" />
+                                    <TextBlock Name="RamText" Grid.Column="1" Text="—" Foreground="{StaticResource SubTextBrush}" FontSize="12" />
+                                </Grid>
+                                <Panel Height="6">
+                                    <Border CornerRadius="3" Background="{StaticResource TrackBrush}" />
+                                    <Border Name="RamFill" CornerRadius="3" Background="{DynamicResource AccentBrush}" HorizontalAlignment="Left" Width="0" />
+                                </Panel>
+                            </StackPanel>
+                            <TextBlock Name="UptimeText" Text="Allumé depuis —" Foreground="{StaticResource SubTextBrush}" FontSize="11" HorizontalAlignment="Center" />
+                        </StackPanel>
                     </Panel>
 
                     <Grid Grid.Row="2" ColumnDefinitions="*,Auto" Margin="0,8,0,0">
@@ -247,7 +272,7 @@
                                        FontSize="12" VerticalAlignment="Center" IsVisible="False" />
                             <Border Width="22" Height="11" CornerRadius="2" BorderThickness="1.2"
                                     BorderBrush="{StaticResource TextBrush}" VerticalAlignment="Center">
-                                <Border Name="BatteryFill" Background="{StaticResource AccentBrush}" CornerRadius="1"
+                                <Border Name="BatteryFill" Background="{DynamicResource AccentBrush}" CornerRadius="1"
                                         HorizontalAlignment="Left" Margin="1" Width="14" />
                             </Border>
                             <TextBlock Name="BatteryText" Text="--%"
@@ -268,6 +293,9 @@
                             <Button Grid.Column="1" Classes="icon" Content="✕" Click="CloseSettings_Click" />
                         </Grid>
                         <Button Classes="setting" Content="Recentrer en haut" Click="Recenter_Click" />
+                        <Button Name="PositionBtn" Classes="setting" Content="Position : centre" Click="Position_Click" />
+                        <Button Name="ClockBtn" Classes="setting" Content="Format d'heure : 24 h" Click="ClockFormat_Click" />
+                        <Button Name="AccentBtn" Classes="setting" Content="Couleur d'accent" Click="Accent_Click" />
                         <Button Name="AutoStartBtn" Classes="setting" Content="Démarrage auto" Click="AutoStart_Click" />
                         <Button Classes="setting" Content="Quitter" Foreground="#FF6B6B" Click="Quit_Click" />
 
@@ -279,7 +307,7 @@
                                            FontSize="12" FontWeight="SemiBold" />
                                 <TextBlock Text="par Karmahghosting · MIT" Foreground="{StaticResource SubTextBrush}" FontSize="11" />
                                 <TextBlock Text="github.com/Karmahghosting/dynamic-island-windows"
-                                           Foreground="{StaticResource AccentBrush}" FontSize="10" />
+                                           Foreground="{DynamicResource AccentBrush}" FontSize="10" />
                             </StackPanel>
                         </Grid>
                     </StackPanel>
@@ -310,7 +338,7 @@
                             <Image Name="BannerIcon" Stretch="UniformToFill" />
                         </Border>
                         <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                            <TextBlock Name="BannerApp" Text="" Foreground="{StaticResource AccentBrush}" FontSize="11" FontWeight="SemiBold" />
+                            <TextBlock Name="BannerApp" Text="" Foreground="{DynamicResource AccentBrush}" FontSize="11" FontWeight="SemiBold" />
                             <TextBlock Name="BannerTitle" Text="" Foreground="{StaticResource TextBrush}" FontSize="13" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
                             <TextBlock Name="BannerBody" Text="" Foreground="{StaticResource SubTextBrush}" FontSize="12" TextTrimming="CharacterEllipsis" MaxWidth="300" />
                         </StackPanel>

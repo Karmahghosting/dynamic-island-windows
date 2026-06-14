@@ -33,6 +33,9 @@ dotnet run -f net9.0
 | Batterie | ✅ | ✅ `/sys` |
 | Batterie Bluetooth | ✅ | ⚠️ best-effort `upower` |
 | Démarrage auto | ✅ registre | ✅ `~/.config/autostart` |
+| Onglet Système (CPU / RAM / uptime) | ✅ | ✅ `/proc` |
+| Couleur d'accent, format 12 h/24 h, position | ✅ | ✅ |
+| Étagère de fichiers persistée | ✅ | ✅ |
 | Toujours au-dessus, sans décorations | ✅ | ✅ |
 
 > **Linux** : le portage compile et produit les binaires (.deb / tar.gz). Les intégrations

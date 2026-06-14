@@ -28,7 +28,11 @@ public partial class MainWindow : Window
     private readonly IBluetoothService _bt = PlatformServices.Bluetooth();
     private readonly IAutoStartService _autoStart = PlatformServices.AutoStart();
     private readonly IFileIconService _fileIcons = PlatformServices.FileIcons();
+    private readonly ISystemStatsService _sysStats = PlatformServices.SystemStats();
     private readonly Settings _settings = Settings.Load();
+
+    private static readonly string[] AccentPresets = { "#34C759", "#0A84FF", "#FF9F0A", "#FF375F", "#BF5AF2" };
+    private string _tab = "media";
 
     private readonly DispatcherTimer _clock = new() { Interval = TimeSpan.FromSeconds(1) };
     private readonly DispatcherTimer _countdown = new() { Interval = TimeSpan.FromSeconds(1) };
@@ -74,10 +78,17 @@ public partial class MainWindow : Window
 
     private async void OnOpened(object? sender, EventArgs e)
     {
+        ApplyAccent(_settings.Accent);
+        foreach (var p in _settings.Shelf)
+            if (!_shelf.Contains(p)) _shelf.Add(p);
+        RebuildShelf();
+
         PositionTop();
         SwitchTab("media");
         UpdateTimerDisplay();
         UpdateAutoStartLabel();
+        UpdateClockLabel();
+        UpdatePositionLabel();
 
         _clock.Start();
         _countdown.Start();
@@ -98,7 +109,13 @@ public partial class MainWindow : Window
         var wa = screen.WorkingArea;
         double scale = screen.Scaling;
         int w = (int)(Width * scale);
-        Position = new PixelPoint(wa.X + (wa.Width - w) / 2, wa.Y);
+        int x = _settings.Position switch
+        {
+            "left" => wa.X + 24,
+            "right" => wa.X + wa.Width - w - 24,
+            _ => wa.X + (wa.Width - w) / 2
+        };
+        Position = new PixelPoint(x, wa.Y);
     }
 
     private void Expand()
@@ -143,7 +160,7 @@ public partial class MainWindow : Window
         else if (_isPlaying && _currentTitle.Length > 0)
             CompactClock.Text = _currentTitle;
         else
-            CompactClock.Text = DateTime.Now.ToString("HH:mm");
+            CompactClock.Text = DateTime.Now.ToString(ClockFormat);
 
         if (!_expanded && !_bannerActive)
             Island.Width = CompactW;
@@ -152,19 +169,37 @@ public partial class MainWindow : Window
     private void TabMedia_Click(object? s, RoutedEventArgs e) => SwitchTab("media");
     private void TabTimer_Click(object? s, RoutedEventArgs e) => SwitchTab("timer");
     private void TabFiles_Click(object? s, RoutedEventArgs e) => SwitchTab("files");
+    private void TabSystem_Click(object? s, RoutedEventArgs e) { SwitchTab("system"); UpdateSystemStats(); }
 
     private void SwitchTab(string tab)
     {
+        _tab = tab;
         MediaPanel.IsVisible = tab == "media";
         TimerPanel.IsVisible = tab == "timer";
         FilesPanel.IsVisible = tab == "files";
+        SystemPanel.IsVisible = tab == "system";
 
         var active = (IBrush)this.FindResource("TextBrush")!;
         var idle = (IBrush)this.FindResource("SubTextBrush")!;
         TabMediaBtn.Foreground = tab == "media" ? active : idle;
         TabTimerBtn.Foreground = tab == "timer" ? active : idle;
         TabFilesBtn.Foreground = tab == "files" ? active : idle;
+        TabSysBtn.Foreground = tab == "system" ? active : idle;
     }
+
+    private void UpdateSystemStats()
+    {
+        var st = _sysStats.Get();
+        double track = ExpandedW - 36;
+        CpuText.Text = $"{st.CpuPercent:0} %";
+        CpuFill.Width = track * Math.Clamp(st.CpuPercent / 100.0, 0, 1);
+        RamText.Text = st.RamText.Length > 0 ? $"{st.RamPercent} %  ·  {st.RamText}" : $"{st.RamPercent} %";
+        RamFill.Width = track * Math.Clamp(st.RamPercent / 100.0, 0, 1);
+        if (st.Uptime > TimeSpan.Zero)
+            UptimeText.Text = $"Allumé depuis {(int)st.Uptime.TotalHours} h {st.Uptime.Minutes:00} min";
+    }
+
+    private string ClockFormat => _settings.Clock12h ? "h:mm tt" : "HH:mm";
 
     private void UpdateMedia()
     {
@@ -267,6 +302,8 @@ public partial class MainWindow : Window
         ShelfHint.IsVisible = _shelf.Count == 0;
         foreach (var path in _shelf)
             ShelfPanel.Children.Add(CreateChip(path));
+        _settings.Shelf = new List<string>(_shelf);
+        _settings.Save();
     }
 
     private Control CreateChip(string path)
@@ -371,9 +408,10 @@ public partial class MainWindow : Window
     private void OnClockTick()
     {
         var now = DateTime.Now;
-        ClockText.Text = now.ToString("HH:mm");
+        ClockText.Text = now.ToString(ClockFormat);
         DateText.Text = now.ToString("dddd d MMMM");
         UpdateCompactText();
+        if (_tab == "system" && _expanded) UpdateSystemStats();
 
         var b = _battery.Get();
         if (b.Present)
@@ -427,6 +465,51 @@ public partial class MainWindow : Window
 
     private void UpdateAutoStartLabel() =>
         AutoStartBtn.Content = _autoStart.IsEnabled() ? "Démarrage auto : activé" : "Démarrage auto : désactivé";
+
+    private void ApplyAccent(string hex)
+    {
+        try
+        {
+            var brush = new SolidColorBrush(Color.Parse(hex));
+            if (Application.Current is not null) Application.Current.Resources["AccentBrush"] = brush;
+        }
+        catch { }
+    }
+
+    private void Accent_Click(object? s, RoutedEventArgs e)
+    {
+        int idx = Array.IndexOf(AccentPresets, _settings.Accent);
+        _settings.Accent = AccentPresets[(idx + 1) % AccentPresets.Length];
+        ApplyAccent(_settings.Accent);
+        _settings.Save();
+    }
+
+    private void ClockFormat_Click(object? s, RoutedEventArgs e)
+    {
+        _settings.Clock12h = !_settings.Clock12h;
+        _settings.Save();
+        UpdateClockLabel();
+        OnClockTick();
+    }
+
+    private void UpdateClockLabel() =>
+        ClockBtn.Content = _settings.Clock12h ? "Format d'heure : 12 h" : "Format d'heure : 24 h";
+
+    private void Position_Click(object? s, RoutedEventArgs e)
+    {
+        _settings.Position = _settings.Position switch { "left" => "center", "center" => "right", _ => "left" };
+        _settings.Save();
+        UpdatePositionLabel();
+        PositionTop();
+    }
+
+    private void UpdatePositionLabel() =>
+        PositionBtn.Content = "Position : " + _settings.Position switch
+        {
+            "left" => "gauche",
+            "right" => "droite",
+            _ => "centre"
+        };
 
     private void ShowFirstRun()
     {

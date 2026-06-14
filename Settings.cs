@@ -7,6 +7,10 @@ internal sealed class Settings
 {
     public bool FirstRunDone { get; set; }
     public bool AutoStart { get; set; }
+    public string Accent { get; set; } = "#34C759";
+    public bool Clock12h { get; set; }
+    public string Position { get; set; } = "center";
+    public List<string> Shelf { get; set; } = new();
 
     private static string Dir =>
         Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "DynamicIsland");

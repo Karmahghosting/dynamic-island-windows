@@ -16,6 +16,8 @@ public sealed record BatteryInfo(int Percent, bool Charging, bool OnAc, bool Pre
 
 public sealed record BtDevice(string Name, int Percent);
 
+public sealed record SystemStats(double CpuPercent, int RamPercent, string RamText, TimeSpan Uptime);
+
 public interface IMediaService
 {
     event Action? Changed;
@@ -51,4 +53,9 @@ public interface IAutoStartService
 public interface IFileIconService
 {
     Bitmap? ForFile(string path);
+}
+
+public interface ISystemStatsService
+{
+    SystemStats Get();
 }

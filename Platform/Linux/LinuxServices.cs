@@ -177,3 +177,65 @@ internal sealed class LinuxNotificationService : INotificationService
         return Task.CompletedTask;
     }
 }
+
+internal sealed class LinuxSystemStatsService : ISystemStatsService
+{
+    private long _prevIdle, _prevTotal;
+    private double _lastCpu;
+
+    public SystemStats Get()
+    {
+        try
+        {
+            var fields = File.ReadLines("/proc/stat").First().Split(' ', StringSplitOptions.RemoveEmptyEntries);
+            long idle = 0, total = 0;
+            for (int i = 1; i < fields.Length; i++)
+            {
+                if (long.TryParse(fields[i], out var v)) { total += v; if (i == 4 || i == 5) idle += v; }
+            }
+            if (_prevTotal != 0)
+            {
+                long dt = total - _prevTotal, di = idle - _prevIdle;
+                if (dt > 0) _lastCpu = Math.Clamp((dt - di) * 100.0 / dt, 0, 100);
+            }
+            _prevIdle = idle; _prevTotal = total;
+        }
+        catch { }
+
+        int ramPercent = 0;
+        string ramText = "";
+        try
+        {
+            long memTotal = 0, memAvail = 0;
+            foreach (var line in File.ReadLines("/proc/meminfo"))
+            {
+                if (line.StartsWith("MemTotal:")) memTotal = ParseKb(line);
+                else if (line.StartsWith("MemAvailable:")) { memAvail = ParseKb(line); break; }
+            }
+            if (memTotal > 0)
+            {
+                long used = memTotal - memAvail;
+                ramPercent = (int)(used * 100 / memTotal);
+                ramText = $"{used / 1048576.0:0.0} / {memTotal / 1048576.0:0.0} Go";
+            }
+        }
+        catch { }
+
+        var uptime = TimeSpan.Zero;
+        try
+        {
+            var up = File.ReadAllText("/proc/uptime").Split(' ')[0];
+            if (double.TryParse(up, System.Globalization.CultureInfo.InvariantCulture, out var secs))
+                uptime = TimeSpan.FromSeconds(secs);
+        }
+        catch { }
+
+        return new SystemStats(_lastCpu, ramPercent, ramText, uptime);
+    }
+
+    private static long ParseKb(string line)
+    {
+        var parts = line.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        return parts.Length >= 2 && long.TryParse(parts[1], out var v) ? v : 0;
+    }
+}
