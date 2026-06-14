@@ -6,16 +6,29 @@
 #define MyAppVersion "1.0.0"
 #define MyAppPublisher "Karmahghosting"
 #define MyAppExe "DynamicIsland.exe"
+#define MyAppUrl "https://github.com/Karmahghosting/dynamic-island-windows"
 
 [Setup]
 AppId={{A7F3C9E2-4B1D-4E8A-9C2F-6D5B8E1A3F70}
 AppName={#MyAppName}
 AppVersion={#MyAppVersion}
 AppPublisher={#MyAppPublisher}
+AppPublisherURL={#MyAppUrl}
+AppSupportURL={#MyAppUrl}
+AppUpdatesURL={#MyAppUrl}/releases
+AppContact={#MyAppUrl}
+AppComments=Dynamic Island a la macOS, par {#MyAppPublisher}
+AppCopyright=Copyright (C) {#MyAppPublisher}
+VersionInfoCompany={#MyAppPublisher}
+VersionInfoDescription={#MyAppName} installer
+VersionInfoVersion={#MyAppVersion}
 DefaultDirName={autopf}\DynamicIsland
 DefaultGroupName={#MyAppName}
 DisableProgramGroupPage=yes
 DisableDirPage=auto
+InfoBeforeFile=credits.txt
+SetupIconFile=..\Assets\icon.ico
+UninstallDisplayIcon={app}\{#MyAppExe}
 OutputDir=Output
 OutputBaseFilename=DynamicIsland-Setup
 Compression=lzma2

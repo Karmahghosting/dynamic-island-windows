@@ -1,0 +1,15 @@
+Dynamic Island 1.0.0
+====================
+
+Une « Dynamic Island » à la macOS pour Windows et Linux.
+
+Auteur / mainteneur : Karmahghosting
+Dépôt : https://github.com/Karmahghosting/dynamic-island-windows
+Licence : MIT
+
+Construit avec :
+  - .NET 9 et Avalonia UI (interface multiplateforme)
+  - Windows Media (SMTC) et UserNotificationListener
+  - Inno Setup (installateur)
+
+Merci d'utiliser Dynamic Island !
