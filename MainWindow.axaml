@@ -270,6 +270,18 @@
                         <Button Classes="setting" Content="Recentrer en haut" Click="Recenter_Click" />
                         <Button Name="AutoStartBtn" Classes="setting" Content="Démarrage auto" Click="AutoStart_Click" />
                         <Button Classes="setting" Content="Quitter" Foreground="#FF6B6B" Click="Quit_Click" />
+
+                        <Border Height="1" Background="#22FFFFFF" Margin="0,8" />
+                        <Grid ColumnDefinitions="Auto,*" Margin="2,2,0,0">
+                            <Image Name="AboutLogo" Grid.Column="0" Width="34" Height="34" Margin="0,0,10,0" />
+                            <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                <TextBlock Text="Dynamic Island v1.0.0" Foreground="{StaticResource TextBrush}"
+                                           FontSize="12" FontWeight="SemiBold" />
+                                <TextBlock Text="par Karmahghosting · MIT" Foreground="{StaticResource SubTextBrush}" FontSize="11" />
+                                <TextBlock Text="github.com/Karmahghosting/dynamic-island-windows"
+                                           Foreground="{StaticResource AccentBrush}" FontSize="10" />
+                            </StackPanel>
+                        </Grid>
                     </StackPanel>
                 </Border>
 

@@ -7,6 +7,7 @@ using Avalonia.Layout;
 using Avalonia.Markup.Xaml;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
+using Avalonia.Platform;
 using Avalonia.Platform.Storage;
 using Avalonia.Threading;
 
@@ -39,12 +40,22 @@ public partial class MainWindow : Window
     private TimeSpan _timerRemaining;
     private bool _timerRunning;
     private readonly List<string> _shelf = new();
+    private readonly Bitmap? _logo;
 
     private double CompactW => (_timerRunning || (_isPlaying && _currentTitle.Length > 0)) ? CompactWPlaying : CompactWBase;
 
     public MainWindow()
     {
         InitializeComponent();
+
+        try
+        {
+            _logo = new Bitmap(AssetLoader.Open(new Uri("avares://DynamicIsland/Assets/icon.png")));
+            Icon = new WindowIcon(_logo);
+            CompactArt.Source = _logo;
+            AboutLogo.Source = _logo;
+        }
+        catch { }
 
         Island.PointerEntered += (_, _) => Expand();
         Island.PointerExited += (_, _) => Collapse();
@@ -164,8 +175,8 @@ public partial class MainWindow : Window
             _currentTitle = "";
             TrackTitle.Text = "Aucune lecture";
             TrackArtist.Text = "—";
-            AlbumArt.Source = null;
-            CompactArt.Source = null;
+            AlbumArt.Source = _logo;
+            CompactArt.Source = _logo;
             CompactBars.IsVisible = false;
             UpdateCompactText();
             return;
@@ -175,8 +186,8 @@ public partial class MainWindow : Window
         _currentTitle = m.Title;
         TrackTitle.Text = m.Title.Length == 0 ? "Lecture en cours" : m.Title;
         TrackArtist.Text = m.Artist.Length == 0 ? "—" : m.Artist;
-        AlbumArt.Source = m.Artwork;
-        CompactArt.Source = m.AppIcon ?? m.Artwork;
+        AlbumArt.Source = m.Artwork ?? _logo;
+        CompactArt.Source = m.AppIcon ?? m.Artwork ?? _logo;
         CompactBars.IsVisible = m.IsPlaying;
         PlayIcon.Data = m.IsPlaying ? PauseGeo : PlayGeo;
         ProgressFill.Width = (ExpandedW - 36) * Math.Clamp(m.Progress, 0, 1);
@@ -448,6 +459,4 @@ public partial class MainWindow : Window
         Island.Height = CompactH;
         CompactView.Opacity = 1;
     }
-
-    private void InitializeComponent() => AvaloniaXamlLoader.Load(this);
 }
