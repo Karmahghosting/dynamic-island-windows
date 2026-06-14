@@ -1,86 +1,85 @@
-# Dynamic Island pour Windows
+# Dynamic Island (Windows + Linux)
 
-Une « Dynamic Island » à la macOS, posée en haut de l'écran, écrite en **C# / WPF (.NET 10)** —
-native Windows, légère et fluide.
+Une « Dynamic Island » à la macOS, posée en haut de l'écran. Portée en **Avalonia (.NET 9)** :
+**un seul code** pour **Windows** et **Linux**, avec des intégrations natives par OS.
 
-![status](https://img.shields.io/badge/platform-Windows%2010%2F11-blue)
+![platforms](https://img.shields.io/badge/platform-Windows%20%7C%20Linux-blue)
 
 ## Lancer (développement)
 
-```powershell
-dotnet run -c Release --project DynamicIsland.csproj
+```bash
+# Windows
+dotnet run -f net9.0-windows10.0.19041.0
+# Linux
+dotnet run -f net9.0
 ```
 
-Une pilule noire apparaît, centrée en haut de l'écran.
-
-- **Survole-la** (ou clique) → elle s'agrandit.
-- **Onglets** en haut à gauche : Média · Minuteur · Fichiers.
-- **Engrenage** en haut à droite → réglages (recentrer, démarrage Windows, quitter).
-- **Glisse des fichiers** sur l'île → ils se rangent dans l'onglet Fichiers (re-glissables vers l'extérieur).
+- **Survole** l'île → elle s'agrandit.
+- **Onglets** : Média · Minuteur · Fichiers.
+- **•••** → réglages (recentrer, démarrage auto, quitter).
+- **Glisse des fichiers** dessus → ils se rangent dans l'onglet Fichiers (clic pour ouvrir).
 
 ## Fonctions
 
-| Fonction | État |
-|---|---|
-| Pilule compacte + expansion animée | ✅ |
-| Heure quand fermée (titre du morceau si lecture) | ✅ |
-| Logo de l'app qui joue (Spotify, navigateur…) | ✅ |
-| Média : titre/artiste/pochette + ⏮ ▶/⏸ ⏭ + progression | ✅ via Windows SMTC |
-| Indicateur audio animé | ✅ |
-| Minuteur (+1/+5/+10 min, démarrer/pause/réinit, décompte dans la pilule) | ✅ |
-| Étagère de fichiers (drag & drop entrant ET sortant) | ✅ |
-| Notifications Windows en bannière | ✅ via UserNotificationListener |
-| Batterie + appareils Bluetooth | ✅ |
-| Premier lancement guidé + réglages persistés | ✅ |
-| Démarrage avec Windows | ✅ |
-| Toujours au-dessus, hors barre des tâches, DPI-aware | ✅ |
+| Fonction | Windows | Linux |
+|---|---|---|
+| Pilule compacte + expansion animée | ✅ | ✅ |
+| Heure fermée / titre du morceau en lecture | ✅ | ✅ |
+| Média : titre/artiste + lecture/pause/suiv/préc + progression | ✅ SMTC | ✅ `playerctl` (MPRIS) |
+| Pochette + logo de l'app | ✅ | ⚠️ (pochette/icone non résolues) |
+| Minuteur (+1/+5/+10, démarrer/pause/réinit) | ✅ | ✅ |
+| Étagère de fichiers (drop entrant) | ✅ | ✅ |
+| Notifications en bannière | ✅ UserNotificationListener | ⚠️ non implémenté (best-effort à venir) |
+| Batterie | ✅ | ✅ `/sys` |
+| Batterie Bluetooth | ✅ | ⚠️ best-effort `upower` |
+| Démarrage auto | ✅ registre | ✅ `~/.config/autostart` |
+| Toujours au-dessus, sans décorations | ✅ | ✅ |
 
-### À propos des notifications & du mode « Ne pas déranger »
+> **Linux** : le portage compile et produit les binaires (.deb / tar.gz). Les intégrations
+> simples (média via `playerctl`, batterie, démarrage auto) sont en place ; pochette, icônes,
+> notifications et batterie BT sont *best-effort* et restent à valider sur une vraie machine Linux.
+> Pré-requis Linux pour le média : le paquet **`playerctl`**.
 
-L'app lit le **centre de notifications** Windows. Une app comme Discord, lorsqu'elle est elle-même
-en *Ne pas déranger*, **n'envoie rien** à Windows : il n'y a alors rien à capter (limite côté Discord,
-pas de l'app). Les notifications Windows normales, elles, sont bien affichées.
+### Notifications & « Ne pas déranger »
 
-## Installateur (Windows)
+Sous Windows on lit le centre de notifications. Une app comme Discord, lorsqu'elle est elle-même
+en *Ne pas déranger*, **n'envoie rien** à Windows : rien à capter (limite côté Discord).
 
-Construit avec **Inno Setup**. En CI (voir plus bas) il produit `DynamicIsland-Setup.exe` :
-raccourci menu Démarrer, raccourci bureau (optionnel), lancement au démarrage (optionnel),
-et désinstalleur.
+## Construire les paquets
 
-Compilation locale de l'installateur :
+### Windows (.exe + installateur Inno Setup)
 
 ```powershell
-dotnet publish DynamicIsland.csproj -c Release -r win-x64 --self-contained true -o publish
+dotnet publish DynamicIsland.csproj -f net9.0-windows10.0.19041.0 -r win-x64 --self-contained true -o publish
 & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" installer\DynamicIsland.iss
 # -> installer\Output\DynamicIsland-Setup.exe
 ```
 
-## Intégration continue
+### Linux (.deb + tar.gz)
 
-`.github/workflows/build.yml` (GitHub Actions) :
-- publie le build Windows self-contained,
-- compile l'installateur Inno Setup,
-- publie les artefacts (portable + setup),
-- attache le setup à la *release* sur un tag `v*`.
+```bash
+dotnet publish DynamicIsland.csproj -f net9.0 -r linux-x64 --self-contained true -o publish-linux
+tar czf DynamicIsland-linux-x64.tar.gz -C publish-linux .
+bash installer/build-deb.sh        # -> dynamic-island_1.0.0_amd64.deb
+```
 
-## Linux (Debian/Ubuntu)
+## CI
 
-WPF est **Windows uniquement**. Une version Debian/Ubuntu nécessite un portage de l'UI vers
-**Avalonia** et des intégrations natives par OS (MPRIS, UPower, libnotify, BlueZ).
-C'est la prochaine étape du projet ; le job CI Linux sera ajouté avec ce portage.
+`.github/workflows/build.yml` : deux jobs (**windows** + **linux**) qui publient, packagent
+(installateur Windows, .deb/tar.gz Linux), publient les artefacts et créent une *release* sur tag `v*`.
 
 ## Structure
 
 ```
-DynamicIsland/
-├─ DynamicIsland.csproj        cible net10.0-windows, WPF
-├─ app.manifest                DPI per-monitor v2
-├─ App.xaml(.cs)               thème / couleurs
-├─ MainWindow.xaml(.cs)        UI + logique (média, minuteur, fichiers, notifs, réglages)
-├─ AppIcon.cs                  icône de l'app qui joue / des fichiers
-├─ NotificationListener.cs     lecture du centre de notifications
-├─ BluetoothBattery.cs         batterie des appareils Bluetooth
-├─ Settings.cs                 préférences persistées (%APPDATA%)
-├─ installer/DynamicIsland.iss installateur Inno Setup
-└─ .github/workflows/build.yml CI
+DynamicIsland.csproj          multi-cible net9.0 (Linux) + net9.0-windows (WinRT)
+Program.cs / App.axaml        bootstrap Avalonia
+MainWindow.axaml(.cs)         UI + logique commune
+Settings.cs                   préférences persistées (%APPDATA% / ~/.config)
+Services/Abstractions.cs      interfaces + modèles
+Services/PlatformServices.cs  fabrique (#if WINDOWS)
+Platform/Windows/*.cs         SMTC, notifications, batterie, BT, icônes, démarrage
+Platform/Linux/LinuxServices.cs  playerctl, /sys, upower, .desktop
+installer/DynamicIsland.iss   installateur Windows
+installer/build-deb.sh        paquet Debian/Ubuntu
+.github/workflows/build.yml   CI Windows + Linux
 ```

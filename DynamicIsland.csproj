@@ -2,15 +2,31 @@
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>net10.0-windows10.0.19041.0</TargetFramework>
-    <TargetPlatformMinVersion>10.0.17763.0</TargetPlatformMinVersion>
-    <RootNamespace>DynamicIsland</RootNamespace>
-    <AssemblyName>DynamicIsland</AssemblyName>
-    <UseWPF>true</UseWPF>
+    <TargetFrameworks>net9.0;net9.0-windows10.0.19041.0</TargetFrameworks>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <LangVersion>latest</LangVersion>
-    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <RootNamespace>DynamicIsland</RootNamespace>
+    <AssemblyName>DynamicIsland</AssemblyName>
+    <ApplicationManifest Condition="$(TargetFramework.Contains('-windows'))">app.manifest</ApplicationManifest>
+    <BuiltInComInteropSupport Condition="$(TargetFramework.Contains('-windows'))">true</BuiltInComInteropSupport>
+    <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
   </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Avalonia" Version="11.2.3" />
+    <PackageReference Include="Avalonia.Desktop" Version="11.2.3" />
+    <PackageReference Include="Avalonia.Themes.Fluent" Version="11.2.3" />
+    <PackageReference Include="Avalonia.Fonts.Inter" Version="11.2.3" />
+  </ItemGroup>
+
+  <ItemGroup Condition="!$(TargetFramework.Contains('-windows'))">
+    <Compile Remove="Platform\Windows\**\*.cs" />
+  </ItemGroup>
+
+  <ItemGroup Condition="$(TargetFramework.Contains('-windows'))">
+    <Compile Remove="Platform\Linux\**\*.cs" />
+    <PackageReference Include="System.Drawing.Common" Version="9.0.0" />
+  </ItemGroup>
 
 </Project>

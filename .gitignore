@@ -3,5 +3,9 @@ obj/
 .vs/
 *.user
 publish/
+publish-linux/
+pkg/
+*.deb
+*.tar.gz
 installer/Output/
 _probe/
