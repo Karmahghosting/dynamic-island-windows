@@ -11,6 +11,7 @@
     <ApplicationManifest Condition="$(TargetFramework.Contains('-windows'))">app.manifest</ApplicationManifest>
     <BuiltInComInteropSupport Condition="$(TargetFramework.Contains('-windows'))">true</BuiltInComInteropSupport>
     <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
+    <EnableWindowsTargeting>true</EnableWindowsTargeting>
   </PropertyGroup>
 
   <ItemGroup>
